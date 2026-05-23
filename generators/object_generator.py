@@ -2,7 +2,11 @@ import numpy as np
 from skimage.measure import marching_cubes
 
 
-def generate_queen_mesh(grid_resolution):
+def generate_queen_object(grid_resolution):
+    """
+    Gera a malha triangular da Rainha utilizando um perfil de revolução definido por uma função implícita.
+    """
+
     # 1. Definição do Espaço Discreto (Grid 3D)
     # Criamos os vetores unidimensionais para cada eixo delimitando a "caixa" de modelagem.
     axis_x = np.linspace(-1.5, 1.5, grid_resolution)
@@ -75,7 +79,7 @@ def generate_queen_mesh(grid_resolution):
     edges = np.array(list(unique_edges))
 
     # 7. Estruturação do Retorno
-    mesh_data = {
+    object_data = {
         'name': 'Rainha',
         'vertices': vertices,
         'edges': edges,
@@ -83,4 +87,4 @@ def generate_queen_mesh(grid_resolution):
         'normals': normals
     }
 
-    return mesh_data
+    return object_data

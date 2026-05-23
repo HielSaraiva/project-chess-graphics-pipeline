@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def visualize_solid(solid):
+def visualize_object(solid):
+    """
+    Renderiza um sólido 3D
+    """
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
 
@@ -13,10 +16,8 @@ def visualize_solid(solid):
     y = verts[:, 1]
     z = verts[:, 2]
 
-    # Renderiza a malha triangular
     ax.plot_trisurf(x, y, z, triangles=faces, edgecolor='black', facecolor='white', alpha=0.8, linewidth=0.2)
 
-    # AJUSTE DE PROPORÇÃO (ASPECT RATIO)
     # O matplotlib tende a distorcer eixos 3D. Esse cálculo garante que a peça
     # não pareça "esmagada" ou "esticada", forçando o mesmo scale em X, Y e Z.
     max_range = np.array([x.max() - x.min(), y.max() - y.min(), z.max() - z.min()]).max() / 2.0
