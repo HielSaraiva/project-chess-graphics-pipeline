@@ -109,3 +109,4 @@ Aplicar iluminação Phong nos vértices dos polígonos visíveis:
 - **Hiel Saraiva**
 - **Roberta Alanis**
 - **André Lucas**
+
