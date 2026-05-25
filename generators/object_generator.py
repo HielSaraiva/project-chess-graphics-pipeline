@@ -173,3 +173,55 @@ def generate_bishop_object(grid_resolution):
     }
 
     return object_data
+
+
+def generate_checker_object(grid_resolution):
+
+    """
+    Gera a malha triangular da Dama utilizando um perfil de revolução definido por uma função implícita.
+    """
+
+    axis_x = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_y = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_z = np.linspace(0.0, 4.0, grid_resolution) 
+
+    grid_x, grid_y, grid_z = np.meshgrid(axis_x, axis_y, axis_z, indexing='ij')
+
+    radius_field = np.zeros_like(grid_z)
+
+    # Região 1: Base (Cilindro)
+    region_base = (grid_z >= 0.0) & (grid_z < 0.7)
+    radius_field[region_base] = 1.5 
+    
+    scalar_field = grid_x ** 2 + grid_y ** 2 - radius_field ** 2
+
+    scalar_field[:, :, 0] = 1.0
+    
+    vertices, faces, normals, _ = marching_cubes(scalar_field, level=0.0, gradient_direction='ascent')
+
+    vertices = vertices - np.mean(vertices, axis=0)
+
+    max_absolute_coordinate = np.max(np.abs(vertices))
+    vertices = (vertices / max_absolute_coordinate) * 1.5
+
+    # Derivação Topológica (Cálculo das Arestas)
+    unique_edges = set()
+    for face in faces:
+        v1, v2, v3 = face
+        unique_edges.add(tuple(sorted((v1, v2))))
+        unique_edges.add(tuple(sorted((v2, v3))))
+        unique_edges.add(tuple(sorted((v3, v1))))
+
+    edges = np.array(list(unique_edges))
+
+    # Estruturação do Retorno
+    object_data = {
+        'name': 'Dama',
+        'vertices': vertices,
+        'edges': edges,
+        'faces': faces,
+        'normals': normals
+    }
+
+    return object_data 
+
