@@ -1,5 +1,6 @@
 from generators.object_generator import generate_queen_object
 from generators.object_generator import generate_bishop_object
+from generators.object_generator import generate_checker_object
 from visualization.object_visualizer import visualize_object
 
 # Questão 1
@@ -18,3 +19,11 @@ bispo = generate_bishop_object(100)
 print(f"Sólido gerado com {len(bispo['vertices'])} vértices e {len(bispo['faces'])} faces triangulares.")
 print("Abrindo visualização 3D")
 visualize_object(bispo)
+
+# Peça: Dama
+print("Gerando o volume com Marching Cubes - Dama")
+dama = generate_checker_object(100)
+
+print(f"Sólido gerado com {len(dama['vertices'])} vértices e {len(dama['faces'])} faces triangulares.")
+print("Abrindo visualização 3D")
+visualize_object(dama)
