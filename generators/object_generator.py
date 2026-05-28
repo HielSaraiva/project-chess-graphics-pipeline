@@ -267,7 +267,7 @@ def generate_pawn_object(grid_resolution):
     vertices = vertices - np.mean(vertices, axis=0)
 
     max_absolute_coordinate = np.max(np.abs(vertices))
-    vertices = (vertices / max_absolute_coordinate) * 4.0
+    vertices = (vertices / max_absolute_coordinate) * 3.5
 
     unique_edges = set()
     for face in faces:
