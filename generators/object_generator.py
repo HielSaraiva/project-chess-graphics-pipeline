@@ -174,7 +174,6 @@ def generate_bishop_object(grid_resolution):
 
     return object_data
 
-
 def generate_checker_object(grid_resolution):
 
     """
@@ -225,3 +224,66 @@ def generate_checker_object(grid_resolution):
 
     return object_data 
 
+def generate_pawn_object(grid_resolution):
+
+    """
+    Gera a malha triangular do Peão utilizando um perfil de revolução definido por uma função implícita.
+    """
+
+    axis_x = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_y = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_z = np.linspace(0.0, 3.0, grid_resolution) 
+
+    grid_x, grid_y, grid_z = np.meshgrid(axis_x, axis_y, axis_z, indexing='ij')
+
+    radius_field = np.zeros_like(grid_z)
+
+    # Região 1: Base (Tronco de cone)
+    region_base = (grid_z >= 0.0) & (grid_z < 0.3)
+    radius_field[region_base] = 0.7 - 0.3 * grid_z[region_base]
+
+    # Região 2: Corpo principal com decaimento exponencial
+    region_body = (grid_z >= 0.3) & (grid_z < 2.0)
+    t = (grid_z[region_body] - 0.3) / (1.1 - 0.3)
+    radius_field[region_body] = (0.20 + 0.45 * np.exp(-2.2 * t))
+
+    # Região 3: Colar (Cilindro de transição)
+    region_collar_1 = (grid_z >= 2.0) & (grid_z < 2.15)
+    radius_field[region_collar_1] = 0.35
+
+    # Região 4: Bolinha
+    region_head = (grid_z >= 2.15) & (grid_z <= 3.0)
+    centro_z = 2.5
+    raio_esfera = 0.4 
+    inside_sqrt_sphere = np.clip(raio_esfera**2 - (grid_z[region_head] - centro_z)**2, 0, None)
+    radius_field[region_head] = np.sqrt(inside_sqrt_sphere)
+
+    scalar_field = grid_x ** 2 + grid_y ** 2 - radius_field ** 2
+
+    scalar_field[:, :, 0] = 1.0
+
+    vertices, faces, normals, _ = marching_cubes(scalar_field, level=0.0, gradient_direction='ascent')
+
+    vertices = vertices - np.mean(vertices, axis=0)
+
+    max_absolute_coordinate = np.max(np.abs(vertices))
+    vertices = (vertices / max_absolute_coordinate) * 4.0
+
+    unique_edges = set()
+    for face in faces:
+        v1, v2, v3 = face
+        unique_edges.add(tuple(sorted((v1, v2))))
+        unique_edges.add(tuple(sorted((v2, v3))))
+        unique_edges.add(tuple(sorted((v3, v1))))
+    edges = np.array(list(unique_edges))
+
+    # Estruturação do Retorno
+    object_data = {
+        'name': 'Peão',
+        'vertices': vertices,
+        'edges': edges,
+        'faces': faces,
+        'normals': normals
+    }
+
+    return object_data
