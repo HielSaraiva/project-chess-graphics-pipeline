@@ -1,6 +1,7 @@
 from generators.object_generator import generate_queen_object
 from generators.object_generator import generate_bishop_object
 from generators.object_generator import generate_checker_object
+from generators.object_generator import generate_pawn_object
 from visualization.object_visualizer import visualize_object
 
 # Questão 1
@@ -27,3 +28,10 @@ dama = generate_checker_object(100)
 print(f"Sólido gerado com {len(dama['vertices'])} vértices e {len(dama['faces'])} faces triangulares.")
 print("Abrindo visualização 3D")
 visualize_object(dama)
+
+# Peça: Peão
+print("Gerando o volume com Marching Cubes - Peão")
+peao = generate_pawn_object(100)
+print(f"Sólido gerado com {len(peao['vertices'])} vértices e {len(peao['faces'])} faces triangulares.")
+print("Abrindo visualização 3D")
+visualize_object(peao)

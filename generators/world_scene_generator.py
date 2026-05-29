@@ -3,6 +3,7 @@ import numpy as np
 from generators.object_generator import generate_queen_object
 from generators.object_generator import generate_bishop_object
 from generators.object_generator import generate_checker_object
+from generators.object_generator import generate_pawn_object
 from transforms.affine_transforms import apply_transformation, translation_matrix
 
 
@@ -39,5 +40,13 @@ def generate_world_scene():
     translation_matrix_z = translation_matrix(-5, 5, -min_z)
     checker['vertices'] = apply_transformation(checker['vertices'], translation_matrix_z)
     world.append(checker)
+
+    print("Gerando a geometria do Peão.")
+    pawn = generate_pawn_object(100)
+
+    min_z = np.min(pawn['vertices'][:, 2])
+    translation_matrix_z = translation_matrix(5, -5, -min_z)
+    pawn['vertices'] = apply_transformation(pawn['vertices'], translation_matrix_z)
+    world.append(pawn)
 
     return world
