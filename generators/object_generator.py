@@ -248,8 +248,8 @@ def generate_pawn_object(grid_resolution):
     radius_field[region_body] = (0.20 + 0.45 * np.exp(-2.2 * t))
 
     # Região 3: Colar (Cilindro de transição)
-    region_collar_1 = (grid_z >= 2.0) & (grid_z < 2.15)
-    radius_field[region_collar_1] = 0.35
+    region_collar = (grid_z >= 2.0) & (grid_z < 2.15)
+    radius_field[region_collar] = 0.35
 
     # Região 4: Bolinha
     region_head = (grid_z >= 2.15) & (grid_z <= 3.0)
@@ -280,6 +280,75 @@ def generate_pawn_object(grid_resolution):
     # Estruturação do Retorno
     object_data = {
         'name': 'Peão',
+        'vertices': vertices,
+        'edges': edges,
+        'faces': faces,
+        'normals': normals
+    }
+
+    return object_data
+
+def generate_rook_object(grid_resolution):
+    """
+    Gera a malha triangular da Torre utilizando revolução 
+    """
+    # 1. Grid
+    axis_x = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_y = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_z = np.linspace(0.0, 3.0, grid_resolution) 
+
+    grid_x, grid_y, grid_z = np.meshgrid(axis_x, axis_y, axis_z, indexing='ij')
+    radius_field = np.zeros_like(grid_z)
+
+    # Região 1: Base
+    region_base = (grid_z >= 0.0) & (grid_z < 0.3)
+    radius_field[region_base] = 0.7 - 0.3 * grid_z[region_base]
+
+    # Região 2: Corpo principal com decaimento exponencial
+    region_body = (grid_z >= 0.3) & (grid_z < 2.0)
+    t = (grid_z[region_body] - 0.3) / (1.1 - 0.3)
+    radius_field[region_body] = (0.20 + 0.45 * np.exp(-2.2 * t))
+
+    # Região 3: Anel/Colar da Torre
+    region_collar = (grid_z >= 2.0) & (grid_z < 2.2)
+    radius_field[region_collar] = 0.35
+
+    # Região 4: Coroa (O cilindro do topo)
+    region_crown = (grid_z >= 2.2) & (grid_z <= 2.5)
+    radius_field[region_crown] = 0.4
+
+    scalar_field = grid_x ** 2 + grid_y ** 2 - radius_field ** 2
+
+    # 5. Escavando o miolo (Deixando oco como um copo)
+    hole_region = (grid_z >= 2.3) & (grid_z <= 2.5)
+    hole_field = 0.3**2 - (grid_x[hole_region]**2 + grid_y[hole_region]**2)
+    scalar_field[hole_region] = np.maximum(scalar_field[hole_region], hole_field)
+
+    # 6. Recortando os Dentes do topo
+    # Pegamos o ângulo de cada coordenada do espaço (olhando de cima)
+    angulo = np.arctan2(grid_y, grid_x)
+    regiao_dentes = (grid_z >= 2.35) & (grid_z <= 2.5) & (np.sin(5 * angulo) > 0)
+    scalar_field[regiao_dentes] = 1.0 # Vazio
+
+    scalar_field[:, :, 0] = 1.0
+
+    vertices, faces, normals, _ = marching_cubes(scalar_field, level=0.0, gradient_direction='ascent')
+
+    vertices = vertices - np.mean(vertices, axis=0)
+
+    max_absolute_coordinate = np.max(np.abs(vertices))
+    vertices = (vertices / max_absolute_coordinate) * 3.5
+
+    unique_edges = set()
+    for face in faces:
+        v1, v2, v3 = face
+        unique_edges.add(tuple(sorted((v1, v2))))
+        unique_edges.add(tuple(sorted((v2, v3))))
+        unique_edges.add(tuple(sorted((v3, v1))))
+    edges = np.array(list(unique_edges))
+
+    object_data = {
+        'name': 'Torre',
         'vertices': vertices,
         'edges': edges,
         'faces': faces,
