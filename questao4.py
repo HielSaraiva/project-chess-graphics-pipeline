@@ -1,7 +1,7 @@
 from generators.world_scene_generator import generate_world_scene
 from transforms.camera_transforms import compute_view_matrix
 from transforms.affine_transforms import apply_transformation
-
+import numpy as np
 
 WIDTH = 800
 HEIGHT = 600
@@ -80,34 +80,50 @@ def draw_line(framebuffer, x1, y1, x2, y2, color):
 
 
 def draw_object(framebuffer, solid, color):
+    projected = perspective_projection(solid['vertices'])
+    screen_vertices = viewport_transform(projected)
 
-    projected = perspective_projection(
-        solid['vertices']
-    )
+    # 1. Iterar sobre as faces
+    for face in solid['faces']:
+        v1_idx, v2_idx, v3_idx = face
 
-    screen_vertices = viewport_transform(
-        projected
-    )
+        # 2. Pegar as coordenadas 3D no Espaço da Câmera (antes de projetar)
+        p1_3d = np.array(solid['vertices'][v1_idx])
+        p2_3d = np.array(solid['vertices'][v2_idx])
+        p3_3d = np.array(solid['vertices'][v3_idx])
 
-    for edge in solid['edges']:
+        # 3. BACKFACE CULLING (Remoção de Polígonos Ocultos)
+        # Calcula 2 dos vetores que formam o triângulo
+        vec1 = p2_3d - p1_3d
+        vec2 = p3_3d - p1_3d
 
-        v1, v2 = edge
+        # Produto vetorial para achar a Normal da face
+        normal = np.cross(vec1, vec2)
 
-        p1 = screen_vertices[v1]
-        p2 = screen_vertices[v2]
+        # O vetor de visão (da câmera para a face). Como a câmera é (0,0,0), é o próprio p1_3d
+        view_vector = p1_3d
 
-        if p1 is None or p2 is None:
+        # Se o produto escalar for >= 0, a face está "de costas" para a câmera.
+        if np.dot(normal, view_vector) >= 0:
+            continue
+
+        # 4. Se a face é visível, pegamos os pontos projetados na tela (2D)
+        p1 = screen_vertices[v1_idx]
+        p2 = screen_vertices[v2_idx]
+        p3 = screen_vertices[v3_idx]
+
+        # Se algum ponto ficou fora do z-buffer (atrás da câmera), ignoramos a face
+        if p1 is None or p2 is None or p3 is None:
             continue
 
         x1, y1 = p1
         x2, y2 = p2
+        x3, y3 = p3
 
-        draw_line(
-            framebuffer,
-            x1, y1,
-            x2, y2,
-            color
-        )
+        # 5. Desenhamos as 3 arestas que compõem este polígono visível
+        draw_line(framebuffer, x1, y1, x2, y2, color)
+        draw_line(framebuffer, x2, y2, x3, y3, color)
+        draw_line(framebuffer, x3, y3, x1, y1, color)
 
 
 def save_ppm(framebuffer, filename):
@@ -139,7 +155,8 @@ target = [0, 0, 0]
 up = [0, 0, 1]
 
 # mesma câmera da Questão 3
-eye = [0, -20, 2]
+# eye = [0, -20, 2]
+eye = [15, 15, 15]
 
 view_matrix = compute_view_matrix(
     eye,
