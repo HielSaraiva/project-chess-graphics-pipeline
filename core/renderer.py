@@ -29,7 +29,7 @@ def render_scene(framebuffer, camera_scene, colors, width, height):
             normal = np.cross(vec1, vec2)
             view_vector = p1_3d
 
-            if np.dot(normal, view_vector) >= 0:
+            if np.dot(normal, view_vector) <= 0:
                 continue
 
             p1 = screen_vertices[v1_idx]
