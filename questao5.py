@@ -15,7 +15,8 @@ COLORS = [
     np.array([0, 255, 0]),  # Bispo
     np.array([0, 0, 255]),  # Dama (Base)
     np.array([255, 165, 0]),  # Peão
-    np.array([165, 255, 0])  # Torre
+    np.array([165, 255, 0]),  # Torre
+    np.array([0, 255, 255])   # Superfície
 ]
 
 TARGET = [0, 0, 0]
