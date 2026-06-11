@@ -7,13 +7,14 @@ from utils.projection_io import save_ppm
 WIDTH = 800
 HEIGHT = 600
 
-# Cores dos objetos (Rainha, Bispo, Dama, Peão, Torre)
+# Cores dos objetos (Rainha, Bispo, Dama, Peão, Torre, Superfície)
 COLORS = [
     [255, 0, 0],
     [0, 255, 0],
     [0, 0, 255],
     [255, 165, 0],
-    [165, 165, 0]
+    [165, 165, 0],
+    [0, 255, 255]
 ]
 
 TARGET = [0, 0, 0]

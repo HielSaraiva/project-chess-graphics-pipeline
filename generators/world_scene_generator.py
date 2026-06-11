@@ -5,6 +5,7 @@ from generators.object_generator import generate_bishop_object
 from generators.object_generator import generate_checker_object
 from generators.object_generator import generate_pawn_object
 from generators.object_generator import generate_rook_object
+from generators.object_generator import generate_surface_object
 from transforms.affine_transforms import apply_transformation, translation_matrix
 
 
@@ -57,5 +58,13 @@ def generate_world_scene():
     translation_matrix_z = translation_matrix(-5, -5, -min_z)
     rook['vertices'] = apply_transformation(rook['vertices'], translation_matrix_z)
     world.append(rook)
+
+    print("Gerando a geometria da Superfície.")
+    surface = generate_surface_object(100)
+
+    min_z = np.min(surface['vertices'][:, 2])
+    translation_matrix_z = translation_matrix(0, 5, -min_z)
+    surface['vertices'] = apply_transformation(surface['vertices'], translation_matrix_z)
+    world.append(surface)
 
     return world
