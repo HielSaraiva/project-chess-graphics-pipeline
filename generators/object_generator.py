@@ -356,3 +356,81 @@ def generate_rook_object(grid_resolution):
     }
 
     return object_data
+
+def generate_surface_object(grid_resolution):
+    """
+    Gera a malha triangular de uma Superfície Bicúbica de Bézier com espessura volumétrica.
+    """
+
+    axis_x = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_y = np.linspace(-1.5, 1.5, grid_resolution)
+    axis_z = np.linspace(-1.5, 1.5, grid_resolution) 
+
+    grid_x, grid_y, grid_z = np.meshgrid(axis_x, axis_y, axis_z, indexing='ij')
+
+    # Normalização de X e Y para os parâmetros u e v (de 0.0 a 1.0)
+    u_1d = (axis_x - (-1.5)) / 3.0
+    v_1d = (axis_y - (-1.5)) / 3.0
+    
+    # Matrizes de potências para u e v
+    U = np.vstack([u_1d**3, u_1d**2, u_1d, np.ones_like(u_1d)]).T
+    V = np.vstack([v_1d**3, v_1d**2, v_1d, np.ones_like(v_1d)])
+
+    # Matriz de Base de Bézier
+    Mb = np.array([
+        [-1,  3, -3,  1],
+        [ 3, -6,  3,  0],
+        [-3,  3,  0,  0],
+        [ 1,  0,  0,  0]
+    ], dtype=float)
+    
+    # Matriz Geométrica Gz (Alturas dos 16 Pontos de Controle)
+    Gz = np.array([
+        [ 1.0,  0.5, -0.5, -1.0],
+        [ 0.5,  0.2, -0.2, -0.5],
+        [-0.5, -0.2,  0.2,  0.5],
+        [-1.0, -0.5,  0.5,  1.0]
+    ], dtype=float)
+
+    # Produto Tensorial: Cálculo da superfície 2D
+    U_Mb = U @ Mb
+    MbT_V = Mb.T @ V
+    Z_surface_2d = U_Mb @ Gz @ MbT_V
+
+    # Transformação Volumétrica (Espessura)
+    Z_surface_3d = np.repeat(Z_surface_2d[:, :, np.newaxis], grid_resolution, axis=2)
+    espessura = 0.08  
+    
+    scalar_field = (grid_z - Z_surface_3d)**2 - espessura**2
+
+    # Fechamento das bordas (Garante a criação das paredes laterais)
+    scalar_field[0, :, :] = 1.0
+    scalar_field[-1, :, :] = 1.0
+    scalar_field[:, 0, :] = 1.0
+    scalar_field[:, -1, :] = 1.0
+
+    vertices, faces, normals, _ = marching_cubes(scalar_field, level=0.0, gradient_direction='ascent')
+
+    vertices = vertices - np.mean(vertices, axis=0)
+
+    max_absolute_coordinate = np.max(np.abs(vertices))
+    vertices = (vertices / max_absolute_coordinate) * 3.0
+
+    unique_edges = set()
+    for face in faces:
+        v1, v2, v3 = face
+        unique_edges.add(tuple(sorted((v1, v2))))
+        unique_edges.add(tuple(sorted((v2, v3))))
+        unique_edges.add(tuple(sorted((v3, v1))))
+    edges = np.array(list(unique_edges))
+
+    # Estruturação do Retorno
+    object_data = {
+        'name': 'Superfície de Bézier',
+        'vertices': vertices,
+        'edges': edges,
+        'faces': faces,
+        'normals': normals
+    }
+
+    return object_data

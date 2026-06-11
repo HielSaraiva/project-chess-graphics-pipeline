@@ -3,6 +3,7 @@ from generators.object_generator import generate_bishop_object
 from generators.object_generator import generate_checker_object
 from generators.object_generator import generate_pawn_object
 from generators.object_generator import generate_rook_object
+from generators.object_generator import generate_surface_object
 from visualization.object_visualizer import visualize_object
 
 # Questão 1
@@ -45,3 +46,11 @@ torre = generate_rook_object(100)
 print(f"Sólido gerado com {len(torre['vertices'])} vértices e {len(torre['faces'])} faces triangulares.")
 print("Abrindo visualização 3D")
 visualize_object(torre)
+
+# Peça: Superfície
+print("\nGerando o volume com Marching Cubes - Superfície")
+superficie = generate_surface_object(100)
+
+print(f"Sólido gerado com {len(superficie['vertices'])} vértices e {len(superficie['faces'])} faces triangulares.")
+print("Abrindo visualização 3D")
+visualize_object(superficie)
