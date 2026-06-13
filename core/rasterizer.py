@@ -1,3 +1,5 @@
+import numpy as np
+
 def draw_line(framebuffer, x1, y1, x2, y2, color, width, height):
     """
     Algoritmo de Bresenham que rasteriza arestas usando apenas aritmética de inteiros.
@@ -28,10 +30,30 @@ def draw_line(framebuffer, x1, y1, x2, y2, color, width, height):
             err += dx
             y1 += sy
 
-def fill_polygon_scanline(framebuffer, screen_vertices, color, width, height):
+def compute_barycentric(x, y, p1, p2, p3):
+    """Calcula os pesos baricêntricos (alpha, beta, gamma) de um pixel no triângulo."""
+    x1, y1 = p1[0], p1[1]
+    x2, y2 = p2[0], p2[1]
+    x3, y3 = p3[0], p3[1]
+    
+    det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+    if det == 0:
+        return 0.333, 0.333, 0.333
+        
+    alpha = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det
+    beta  = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det
+    gamma = 1.0 - alpha - beta
+    return alpha, beta, gamma
+
+def fill_polygon_scanline(framebuffer, screen_vertices, color, width, height, is_barycentric):
     """
     Preenche um polígono (triângulo) utilizando o algoritmo de Scanline (Regra Par-Ímpar).
     """
+    
+    if is_barycentric:
+        c1, c2, c3 = color
+        v1, v2, v3 = screen_vertices
+
     # Encontra a bounding box (caixa delimitadora) do triângulo no eixo Y
     min_y = int(min(v[1] for v in screen_vertices))
     max_y = int(max(v[1] for v in screen_vertices))
@@ -70,4 +92,12 @@ def fill_polygon_scanline(framebuffer, screen_vertices, color, width, height):
 
             # Preenche os pixels entre a borda esquerda (Par) e a borda direita (Ímpar)
             for x in range(x_start, x_end + 1):
-                framebuffer[y][x] = color
+                
+                if is_barycentric:
+                    alpha, beta, gamma = compute_barycentric(x, y, v1, v2, v3)
+                    
+                    final_color = (alpha * c1 + beta * c2 + gamma * c3).astype(int)
+                    final_color = np.clip(final_color, 0, 255).astype(int)
+                    framebuffer[y][x] = final_color
+                else:
+                    framebuffer[y][x] = color

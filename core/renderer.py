@@ -63,13 +63,13 @@ def render_scene(framebuffer, camera_scene, colors, width, height):
 
         vertices_da_face = [face['p1'], face['p2'], face['p3']]
 
-        fill_polygon_scanline(framebuffer, vertices_da_face, color, width, height)
+        fill_polygon_scanline(framebuffer, vertices_da_face, color, width, height, is_barycentric=False)
 
         draw_line(framebuffer, x1, y1, x2, y2, color, width, height)
         draw_line(framebuffer, x2, y2, x3, y3, color, width, height)
         draw_line(framebuffer, x3, y3, x1, y1, color, width, height)
 
-def render_scene_phong(framebuffer, camera_scene, light_pos_cam, colors, width, height, light_params):
+def render_scene_phong(framebuffer, camera_scene, light_pos_cam, colors, width, height, light_params, use_barycentric=False):
     """
     Orquestra o pipeline com iluminação Phong nos vértices, Backface Culling
     e o Algoritmo do Pintor.
@@ -113,8 +113,12 @@ def render_scene_phong(framebuffer, camera_scene, light_pos_cam, colors, width, 
             c2 = compute_phong_lighting(p2_3d, n2_3d, light_pos_cam, base_color, light_params)
             c3 = compute_phong_lighting(p3_3d, n3_3d, light_pos_cam, base_color, light_params)
 
-            # Shading Híbrido: Média das cores
-            face_color = ((c1 + c2 + c3) / 3.0).astype(int)
+            if use_barycentric:
+                face_color = [c1, c2, c3]
+            else:
+                # Shading Híbrido: Média das cores
+                face_color = ((c1 + c2 + c3) / 3.0).astype(int)
+            
             z_avg = (p1_3d[2] + p2_3d[2] + p3_3d[2]) / 3.0
 
             all_faces_to_draw.append({
@@ -134,9 +138,12 @@ def render_scene_phong(framebuffer, camera_scene, light_pos_cam, colors, width, 
         color = face['color']
 
         vertices_da_face = [face['p1'], face['p2'], face['p3']]
-
-        fill_polygon_scanline(framebuffer, vertices_da_face, color, width, height)
-        # Contorno para mitigar buracos de rasterização (Z-fighting intrapolígono)
-        draw_line(framebuffer, x1, y1, x2, y2, color, width, height)
-        draw_line(framebuffer, x2, y2, x3, y3, color, width, height)
-        draw_line(framebuffer, x3, y3, x1, y1, color, width, height)
+        
+        fill_polygon_scanline(framebuffer, vertices_da_face, color, width, height, is_barycentric=use_barycentric)
+            
+        # Desenha os contornos da malha para cumprir o requisito de "rasterização de retas"
+        if not use_barycentric:
+            line_color = color
+            draw_line(framebuffer, x1, y1, x2, y2, line_color, width, height)
+            draw_line(framebuffer, x2, y2, x3, y3, line_color, width, height)
+            draw_line(framebuffer, x3, y3, x1, y1, line_color, width, height)
