@@ -6,6 +6,39 @@ Implementar um pipeline gráfico completo (do modelo 3D até a rasterização 2D
 
 ---
 
+## Configuração do Ambiente
+
+### Pré-requisitos
+- Python 3.9+
+- pip (gerenciador de pacotes Python)
+
+### Criação do Ambiente Virtual
+
+#### macOS/Linux
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Windows
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### Instalação das Dependências
+Com o ambiente virtual ativado, execute:
+```bash
+pip install -r requirements.txt
+```
+
+### Dependências do Projeto
+- **numpy**: Operações numéricas e álgebra linear
+- **matplotlib**: Visualização de gráficos 2D/3D
+- **scikit-image**: Processamento de imagens
+
+---
+
 ## Etapas do Pipeline
 
 ---
@@ -76,3 +109,4 @@ Aplicar iluminação Phong nos vértices dos polígonos visíveis:
 - **Hiel Saraiva**
 - **Roberta Alanis**
 - **André Lucas**
+
